@@ -118,3 +118,18 @@ return $result;
 private $_name;
 private $_rentals;
 }
+
+// testing of refactoring
+
+$childFilm=new Film('Child Film',Film::CHILDRENS);
+$newRelease=new Film('New Release',Film::NEW_RELEASE);
+$regularFilm=new Film('Regular Film',Film::REGULAR);
+$films=[$childFilm,$newRelease,$regularFilm];
+for ($daysRented=1;$daysRented<10;$daysRented++) {
+	$customer=new Customer('Mr Test '.$daysRented);
+	echo 'Renting films for '.$daysRented.' days'."\n";
+	foreach ($films as $film) {
+		$customer->addRental(new Rental($film,$daysRented));
+	}
+	echo $customer->getStatement();
+}
