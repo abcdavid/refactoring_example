@@ -19,6 +19,42 @@ public function getTitle()
 {
 return $this->_title;
 }
+
+private function getRegularPrice($daysRented)
+{
+	if ($daysRented>2) {
+		return 2+($daysRented-2)*1.5;
+	}
+	return 2;
+}
+private function getNewReleasePrice($daysRented)
+{
+	return 3*$daysRented;
+}
+private function getChildrensPrice($daysRented)
+{
+	if ($daysRented>3) {
+		return 1.5+($daysRented-3)*1.5;
+	}
+	return 1.5;
+}
+function getLoyaltyPoints($daysRented)
+{
+	if ($daysRented>1 && $this->_priceCode==self::NEW_RELEASE) {
+		return 2;
+	}
+	return 1;
+}
+function getCharge($daysRented)
+{
+	switch ($this->_priceCode) {
+		case self::REGULAR: return $this->getRegularPrice($daysRented); break;
+		case self::CHILDRENS: return $this->getChildrensPrice($daysRented); break;
+		case self::NEW_RELEASE:	return $this->getNewReleasePrice($daysRented); break;	
+		default: die('getCharge:It must be a valid price code'); // error handler please
+	}
+}
+
 private $_title;
 private $_priceCode;
 const CHILDRENS = 2;
@@ -44,6 +80,10 @@ public function getFilm()
 return $this->_film;
 }
 
+function getCharge() {
+	return $this->getFilm()->getCharge($this->_daysRented);
+}
+
 private $_film;
 private $_daysRented;
 }
@@ -64,45 +104,14 @@ return $this->_name;
 }
 public function getStatement()
 {
-$totalAmount = 0;
-$frequentRenterPoints = 0;
 $result = "Rental Record for " . $this->getName() . "\n";
 foreach ($this->_rentals as $rental)
 {
-/* @var $rental Rental */
-$thisAmount = 0;
-//determine amounts for each line
-switch ($rental->getFilm()->getPriceCode())
-{
-case Film::REGULAR:
-$thisAmount += 2;
-if ($rental->getDaysRented() > 2)
-$thisAmount += ($rental->getDaysRented() - 2) * 1.5;
-break;
-case Film::NEW_RELEASE:
-$thisAmount += $rental->getDaysRented() * 3;
-break;
-case Film::CHILDRENS:
-$thisAmount += 1.5;
-if ($rental->getDaysRented() > 3)
-$thisAmount += ($rental->getDaysRented() - 3) * 1.5;
-break;
-}
-
-// add frequent renter points
-$frequentRenterPoints++;
-// add bonus for a two day new release rental
-if ($rental->getFilm()->getPriceCode() == Film::NEW_RELEASE &&
-
-$rental->getDaysRented() > 1)
-
-$frequentRenterPoints++;
 //show figures for this rental
 $result .= "\t" . $rental->getFilm()->getTitle() . "\t" .
 
-$thisAmount . "\n";
+$rental->getCharge() . "\n";
 
-$totalAmount += $thisAmount;
 }
 return $result;
 }
